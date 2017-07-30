@@ -34,6 +34,7 @@ const (
 )
 
 var (
+	allFieldsRequired            bool = false
 	disallowAdditionalProperties bool = false
 	disallowBigIntsAsStrings     bool = false
 	debugLogging                 bool = false
@@ -64,6 +65,7 @@ type ProtoPackage struct {
 type LogLevel int
 
 func init() {
+	flag.BoolVar(&allFieldsRequired, "all_fields_required", false, "All fields will be required by the JSON schema")
 	flag.BoolVar(&disallowAdditionalProperties, "disallow_additional_properties", false, "Disallow additional properties")
 	flag.BoolVar(&disallowBigIntsAsStrings, "disallow_bigints_as_strings", false, "Disallow bigints to be strings (eg scientific notation)")
 	flag.BoolVar(&debugLogging, "debug", false, "Log debug messages")
@@ -305,6 +307,12 @@ func convertMessageType(curPkg *ProtoPackage, msg *descriptor.DescriptorProto) (
 			return jsonSchemaType, err
 		}
 		jsonSchemaType.Properties[fieldDesc.GetName()] = recursedJsonSchemaType
+
+		// Mark this field as being "required";
+		if allFieldsRequired {
+			jsonSchemaType.Required = append(jsonSchemaType.Required, fieldDesc.GetName())
+		}
+
 	}
 	return jsonSchemaType, nil
 }
@@ -457,6 +465,8 @@ func convertFrom(rd io.Reader) (*plugin.CodeGeneratorResponse, error) {
 func commandLineParameter(parameters string) {
 	for _, parameter := range strings.Split(parameters, ",") {
 		switch parameter {
+		case "all_fields_required":
+			allFieldsRequired = true
 		case "debug":
 			debugLogging = true
 		case "disallow_additional_properties":
