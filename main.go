@@ -272,7 +272,8 @@ func convertField(curPkg *ProtoPackage, desc *descriptor.FieldDescriptorProto, m
 		descriptor.FieldDescriptorProto_TYPE_MESSAGE:
 		switch desc.GetTypeName() {
 		case ".google.protobuf.Timestamp":
-			jsonSchemaType.Type = gojsonschema.TYPE_STRING
+			jsonSchemaType.OneOf = append(jsonSchemaType.OneOf, &jsonschema.Type{Type: gojsonschema.TYPE_STRING}, &jsonschema.Type{Type: gojsonschema.TYPE_OBJECT})
+			jsonSchemaType.AdditionalProperties = []byte("true")
 			jsonSchemaType.Format = "date-time"
 		default:
 			jsonSchemaType.Type = gojsonschema.TYPE_OBJECT
