@@ -11,18 +11,23 @@ const ArrayOfMessages = `{
                 "$schema": "http://json-schema.org/draft-04/schema#",
                 "properties": {
                     "complete": {
+                        "properties": {},
                         "type": "boolean"
                     },
                     "id": {
+                        "properties": {},
                         "type": "integer"
                     },
                     "name": {
+                        "properties": {},
                         "type": "string"
                     },
                     "rating": {
+                        "properties": {},
                         "type": "number"
                     },
                     "timestamp": {
+                        "properties": {},
                         "type": "string"
                     },
                     "topology": {
@@ -53,6 +58,7 @@ const ArrayOfMessages = `{
                 "additionalProperties": true,
                 "type": "object"
             },
+            "properties": {},
             "type": "array"
         }
     },
