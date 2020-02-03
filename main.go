@@ -22,6 +22,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
+	"github.com/iancoleman/orderedmap"
 	"github.com/xeipuuv/gojsonschema"
 )
 
@@ -35,11 +36,11 @@ const (
 )
 
 var (
-	allowNullValues              bool = false
-	disallowAdditionalProperties bool = false
-	disallowBigIntsAsStrings     bool = false
-	debugLogging                 bool = false
-	globalPkg                         = &ProtoPackage{
+	allowNullValues              = false
+	disallowAdditionalProperties = false
+	disallowBigIntsAsStrings     = false
+	debugLogging                 = false
+	globalPkg                    = &ProtoPackage{
 		name:     "",
 		parent:   nil,
 		children: make(map[string]*ProtoPackage),
@@ -109,7 +110,7 @@ func registerType(pkgName *string, msg *descriptor.DescriptorProto) {
 
 func (pkg *ProtoPackage) lookupType(name string) (*descriptor.DescriptorProto, bool) {
 	if strings.HasPrefix(name, ".") {
-		return globalPkg.relativelyLookupType(name[1:len(name)])
+		return globalPkg.relativelyLookupType(name[1:])
 	}
 
 	for ; pkg != nil; pkg = pkg.parent {
@@ -180,7 +181,7 @@ func convertField(curPkg *ProtoPackage, desc *descriptor.FieldDescriptorProto, m
 
 	// Prepare a new jsonschema.Type for our eventual return value:
 	jsonSchemaType := &jsonschema.Type{
-		Properties: make(map[string]*jsonschema.Type),
+		Properties: orderedmap.New(),
 	}
 
 	// Switch the types, and pick a JSONSchema equivalent:
@@ -355,7 +356,7 @@ func convertMessageType(curPkg *ProtoPackage, msg *descriptor.DescriptorProto) (
 
 	// Prepare a new jsonschema:
 	jsonSchemaType := jsonschema.Type{
-		Properties: make(map[string]*jsonschema.Type),
+		Properties: orderedmap.New(),
 		Version:    jsonschema.Version,
 	}
 
@@ -383,7 +384,7 @@ func convertMessageType(curPkg *ProtoPackage, msg *descriptor.DescriptorProto) (
 			logWithLevel(LOG_ERROR, "Failed to convert field %s in %s: %v", fieldDesc.GetName(), msg.GetName(), err)
 			return jsonSchemaType, err
 		}
-		jsonSchemaType.Properties[fieldDesc.GetName()] = recursedJSONSchemaType
+		jsonSchemaType.Properties.Set(fieldDesc.GetName(), recursedJSONSchemaType)
 	}
 	return jsonSchemaType, nil
 }
